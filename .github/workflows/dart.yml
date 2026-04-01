@@ -9,6 +9,7 @@ jobs:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
@@ -36,6 +37,7 @@ jobs:
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             flutter build windows
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            # Собираем универсальный бинарник для Mac (Intel + Apple Silicon)
             flutter build macos --universal
           else
             flutter build linux
@@ -51,7 +53,7 @@ jobs:
         with:
           name: vpn-prank-${{ matrix.os }}
           path: |
-            build/windows/runner/Release/
-            build/linux/x64/release/bundle/
-            build/macos/Build/Products/Release/
+            build/windows/runner/Release
+            build/linux/x64/release/bundle
+            build/macos/Build/Products/Release
             build/app/outputs/flutter-apk/app-release.apk
