@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 import 'dart:async';
 import 'dart:math';
 
@@ -47,7 +47,8 @@ class _VPNPrankAppState extends State<VPNPrankApp> with SingleTickerProviderStat
   late AnimationController _pulseAnimationController;
   late Animation<double> _pulseAnimation;
 
-  final String _prankVideoUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+  late VideoPlayerController _videoController;
+  late Future<void> _initializeVideoPlayerFuture;
 
   @override
   void initState() {
@@ -62,6 +63,10 @@ class _VPNPrankAppState extends State<VPNPrankApp> with SingleTickerProviderStat
         curve: Curves.easeInOut,
       ),
     );
+
+    _videoController = VideoPlayerController.asset('resources/video.mkv');
+    _initializeVideoPlayerFuture = _videoController.initialize();
+    _videoController.setLooping(true);
   }
 
   @override
@@ -69,6 +74,7 @@ class _VPNPrankAppState extends State<VPNPrankApp> with SingleTickerProviderStat
     _statsTimer?.cancel();
     _connectionTimer?.cancel();
     _pulseAnimationController.dispose();
+    _videoController.dispose();
     super.dispose();
   }
 
@@ -103,36 +109,49 @@ class _VPNPrankAppState extends State<VPNPrankApp> with SingleTickerProviderStat
           _download = '${_random.nextInt(21) + 80} Mbps'; // Final download 80-100 Mbps
           _upload = '${_random.nextInt(11) + 40} Mbps'; // Final upload 40-50 Mbps
         });
-        _launchPrankVideo(); // Launch the prank video
+        _videoController.play();
       });
-    }
-    // If already connected, do nothing to maintain the illusion
-  }
-
-  Future<void> _launchPrankVideo() async {
-    final Uri url = Uri.parse(_prankVideoUrl);
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      // Optionally, show an error if the URL couldn't be launched
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not launch $_prankVideoUrl')),
-        );
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_connectionStatus == ConnectionStatus.connected) {
+      return Scaffold(
+        body: Center(
+          child: FutureBuilder(
+            future: _initializeVideoPlayerFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return AspectRatio(
+                  aspectRatio: _videoController.value.aspectRatio,
+                  child: VideoPlayer(_videoController),
+                );
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            setState(() {
+              _videoController.pause();
+              _connectionStatus = ConnectionStatus.disconnected;
+              _pulseAnimationController.repeat(reverse: true);
+            });
+          },
+          child: const Icon(Icons.close),
+        ),
+      );
+    }
+
     // Determine colors and text based on connection status
-    final Color connectionColor = _connectionStatus == ConnectionStatus.connected
-        ? Colors.green // Green for connected
-        : _connectionStatus == ConnectionStatus.connecting
+    final Color connectionColor = _connectionStatus == ConnectionStatus.connecting
             ? Colors.orange // Orange for connecting
             : Colors.grey; // Grey for disconnected
 
-    final String connectionText = _connectionStatus == ConnectionStatus.connected
-        ? 'Secure'
-        : _connectionStatus == ConnectionStatus.connecting
+    final String connectionText = _connectionStatus == ConnectionStatus.connecting
             ? 'Connecting...'
             : 'Disconnected';
 
@@ -239,7 +258,7 @@ class _VPNPrankAppState extends State<VPNPrankApp> with SingleTickerProviderStat
                         ],
                       ),
                     ),
-                    Icon(Icons.arrow_forward_ios, color: Colors.white54),
+                    const Icon(Icons.arrow_forward_ios, color: Colors.white54),
                   ],
                 ),
               ),
