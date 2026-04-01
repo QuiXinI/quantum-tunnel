@@ -47,15 +47,29 @@ jobs:
 
       - name: Build Android APK
         if: matrix.os == 'ubuntu-latest'
-        run: flutter build apk --release
+        run: |
+          flutter create --platforms=android .
+          flutter build apk --release
 
-      - name: Upload Artifacts
+      - name: Upload Windows Artifact
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: vpn-prank-${{ matrix.os }}
+          name: vpn-windows
+          path: build/windows/runner/Release/
+
+      - name: Upload Linux & Android Artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vpn-linux-android
           path: |
-            build/windows/runner/Release
-            build/linux/x64/release/bundle
-            build/macos/Build/Products/Release
+            build/linux/x64/release/bundle/
             build/app/outputs/flutter-apk/app-release.apk
-          if-no-files-found: warn
+
+      - name: Upload macOS Artifact
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vpn-macos
+          path: build/macos/Build/Products/Release/*.app
