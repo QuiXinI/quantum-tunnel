@@ -1,0 +1,10 @@
+<project version="4">
+  <component name="Black">
+    <option name="sdkName" value="Python 3.12 (QueueBot)" />
+  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (QueueBot)" project-jdk-type="Python SDK" />
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
