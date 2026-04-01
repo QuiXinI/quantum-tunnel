@@ -37,7 +37,6 @@ jobs:
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             flutter build windows
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            # Собираем универсальный бинарник для Mac (Intel + Apple Silicon)
             flutter build macos --universal
           else
             flutter build linux
