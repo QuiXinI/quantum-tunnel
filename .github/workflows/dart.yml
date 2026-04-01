@@ -34,6 +34,8 @@ jobs:
 
       - name: Build App
         run: |
+          flutter create . --platforms=windows,linux,macos
+          
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             flutter build windows --release
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
